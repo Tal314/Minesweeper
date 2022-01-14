@@ -1,0 +1,5 @@
+let pictures = {};
+
+function preload() {
+
+}
