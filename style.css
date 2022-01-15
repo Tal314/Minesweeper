@@ -7,3 +7,7 @@ body {
 canvas {
     display: block;
 }
+
+.open0 {
+    background-image: "minesweeper data/numbers/open0";
+}
