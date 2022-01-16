@@ -176,14 +176,13 @@ function draw() {
 }
 
 function Canvas() {
-    console.log(gameDetail);
     canvas = createCanvas(gameDetail.width * 32 + 40, gameDetail.height * 32 + 124).position((windowWidth - width) / 2, 0);
 
     surfaceSelector = createSelect().size(152, 72).style("font-size: 24px; background-color: white;").position((windowWidth + width) / 2 - 152, height + 16);
     surfaceSelector.option("Regular Surface");
     surfaceSelector.option("Torus");
-    //surfaceSelector.option("Mobius Strip");
-    //surfaceSelector.option("Klein Bottle");
+    surfaceSelector.option("Mobius Strip");
+    surfaceSelector.option("Klein Bottle");
     surfaceSelector.selected(surface);
     surfaceSelector.changed(changSurface);
 
@@ -211,7 +210,6 @@ function Canvas() {
         customDiv.child(elements[i]);
     }
     if (difficultySelector.value() == "Custom") {
-        console.log("unhide");
         hideCustom("Custom", "block");
     } else {
         hideCustom("Custom", "none");
@@ -267,7 +265,7 @@ document.onmousedown = function(evt) {
     mouseState[evt.button] = true;
 
     if (mouseState[mouseRight] && !mouseState[mouseLeft]) {
-        if (gameState == "PLAYING") {
+        if (gameState == "PLAYING" || gameState == "BEFORE") {
             let coord = mouseToBoard(mouseX, mouseY);
             if (!board[coord.x][coord.y].revealed) {
                 if ((!board[coord.x][coord.y].marked && totalFlagged < gameDetail.mines) || board[coord.x][coord.y].marked) {
@@ -363,8 +361,38 @@ function findNeighbours(x, y) {
             }
             break;
         case "Mobius Strip":
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (!(i == j && i == 0)) {
+                        if ((x + i >= gameDetail.width || x + i < 0) && (y + j < gameDetail.height && y + j >= 0)) {
+                            let newX = (x + i + gameDetail.width) % gameDetail.width;
+                            let newY = gameDetail.height - y - j - 1;
+                            neighbours.push([newX, newY]);
+                        } else if (x + i < gameDetail.width && x + i >= 0 && y + j < gameDetail.height && y + j >= 0) {
+                            neighbours.push([x + i, y + j]);
+                        }
+                    }
+                }
+            }
             break;
         case "Klein Bottle":
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (!(i == j && i == 0)) {
+                        if ((x + i >= gameDetail.width || x + i < 0) && (y + j < gameDetail.height && y + j >= 0)) {
+                            let newX = (x + i + gameDetail.width) % gameDetail.width;
+                            let newY = gameDetail.height - y - j - 1;
+                            neighbours.push([newX, newY]);
+                        } else if ((y + j >= gameDetail.height || y + j < 0) && (x + i < gameDetail.width && x + i >= 0)) {
+                            let newX = gameDetail.width - x - i - 1;
+                            let newY = (y + j + gameDetail.height) % gameDetail.height;
+                            neighbours.push([newX, newY]);
+                        } else if (x + i < gameDetail.width && x + i >= 0 && y + j < gameDetail.height && y + j >= 0) {
+                            neighbours.push([x + i, y + j]);
+                        }
+                    }
+                }
+            }
             break;
     }
 

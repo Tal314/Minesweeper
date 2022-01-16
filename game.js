@@ -65,10 +65,12 @@ function generateGame(x, y) {
         for (let j = 0; j < gameDetail.height; j++) {
             if (!board[i][j].mine) {
                 let neighbours = findNeighbours(i, j);
+                console.log(neighbours);
                 for (let k = 0; k < neighbours.length; k++) {
                     let tmepX = neighbours[k][0];
                     let tempY = neighbours[k][1];
 
+                    console.log(neighbours[k]);
                     if (board[tmepX][tempY].mine) {
                         board[i][j].value++;
                     }
@@ -84,7 +86,6 @@ function revealeNeighbours(x, y) {
     let neighbours = findNeighbours(x, y);
     board[x][y].revealed = true;
     revealed++;
-    console.log(revealed);
     if (board[x][y].value == 0) {
         for (let k = 0; k < neighbours.length; k++) {
             let tempX = neighbours[k][0];
@@ -95,7 +96,6 @@ function revealeNeighbours(x, y) {
                 } else {
                     board[tempX][tempY].revealed = true;
                     revealed++;
-                    console.log(revealed);
                 }
             }
         }
