@@ -1,6 +1,13 @@
-let gameDetail = Expert;
-let board = createBoard(gameDetail.height, gameDetail.width);
-let canvas;
+initiateGame();
+
+let mouseState = [false, false, false];
+let mouseLeft = 0;
+let mouseRight = 2;
+let surface = "Regular Surface"; //"Regular Surface", "Torus", "Mobius Strip", "Klein Bottle"
+
+let canvas, surfaceSelector, difficultySelector;
+let customDiv;
+let customSubmit, customWidth, customHeight, customMines;
 let dbx = 20;
 let dby = 104;
 
@@ -73,28 +80,51 @@ function setup() {
 }
 
 function draw() {
-    background("#bcbdbc");
+    background("#bdbdbd");
     //drawing the board
     for (let i = 0; i < gameDetail.width; i++) {
         for (let j = 0; j < gameDetail.height; j++) {
             let cell = board[i][j];
             if (cell.revealed) {
-                if (cell.bomb) {
-                    if (cell.marked) {
-                        image(pictures.board.bombs.wrong, i * 32 + dbx, j * 32 + dby);
-                    } else if (cell.tapped) {
+                if (cell.mine) {
+                    if (cell.tapped) {
                         image(pictures.board.bombs.tapped, i * 32 + dbx, j * 32 + dby);
                     } else {
                         image(pictures.board.bombs.regular, i * 32 + dbx, j * 32 + dby);
                     }
                 } else {
-                    image(pictures.board.numbers[cell.value]);
+                    image(pictures.board.numbers[cell.value], i * 32 + dbx, j * 32 + dby);
+                    if (cell.wrong) {
+                        image(pictures.board.bombs.wrong, i * 32 + dbx, j * 32 + dby);
+                    }
                 }
             } else {
-                if (cell.flagged) {
+                if (cell.marked) {
                     image(pictures.board.flagged, i * 32 + dbx, j * 32 + dby);
                 } else {
                     image(pictures.board.covered, i * 32 + dbx, j * 32 + dby);
+                }
+            }
+
+            if (gameState == "BEFORE" || gameState == "PLAYING") {
+                if (onBoard(mouseX, mouseY)) {
+                    let x = Math.floor((mouseX - dbx) / 32);
+                    let y = Math.floor((mouseY - dby) / 32);
+                    if (mouseState[mouseLeft] && !mouseState[mouseRight]) {
+                        if (!board[x][y].marked && !board[x][y].revealed) {
+                            image(pictures.board.numbers[0], x * 32 + dbx, y * 32 + dby);
+                        }
+                    } else if (mouseState[mouseRight] && mouseState[mouseLeft]) {
+                        if (!board[x][y].marked && !board[x][y].revealed) {
+                            image(pictures.board.numbers[0], x * 32 + dbx, y * 32 + dby);
+                        }
+                        let neighbours = findNeighbours(x, y);
+                        for (let l = 0; l < neighbours.length; l++) {
+                            if (!board[neighbours[l][0]][neighbours[l][1]].marked && !board[neighbours[l][0]][neighbours[l][1]].revealed) {
+                                image(pictures.board.numbers[0], neighbours[l][0] * 32 + dbx, neighbours[l][1] * 32 + dby);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -124,7 +154,7 @@ function draw() {
         image(pictures.faces.ooh, (width - 52) / 2, 26);
     } else if (faceState == "WIN") {
         image(pictures.faces.win, (width - 52) / 2, 26);
-    } else if (faceState == "LOSE") {
+    } else if (faceState == "DEAD") {
         image(pictures.faces.dead, (width - 52) / 2, 26);
     } else if (faceState == "PRESSED") {
         image(pictures.faces.pressed, (width - 52) / 2, 26);
@@ -147,7 +177,46 @@ function draw() {
 
 function Canvas() {
     console.log(gameDetail);
-    canvas = createCanvas(gameDetail.width * 32 + 40, gameDetail.height * 32 + 124);
+    canvas = createCanvas(gameDetail.width * 32 + 40, gameDetail.height * 32 + 124).position((windowWidth - width) / 2, 0);
+
+    /*surfaceSelector = createSelect().size(152, 72).style("font-size: 24px; background-color: white;").position((windowWidth + width) / 2 - 152, height + 16);
+    surfaceSelector.option("Regular Surface");
+    surfaceSelector.option("Torus");
+    surfaceSelector.option("Mobius Strip");
+    surfaceSelector.option("Klein Bottle");
+    surfaceSelector.selected(surface);*/
+
+    createButton("Regular Surface").size(152, 72).style("font-size: 24px; background-color: white;").position((windowWidth + width) / 2 - 152, height + 16);
+
+    difficultySelector = createSelect().size(162, 72).style("font-size: 24px; background-color: white;").position((windowWidth - width) / 2, height + 16);
+    difficultySelector.option("Expert");
+    difficultySelector.option("Intermediate");
+    difficultySelector.option("Beginner");
+    difficultySelector.option("Custom");
+    difficultySelector.selected(gameDetail.name);
+    difficultySelector.changed(selectDifficulty);
+
+    customDiv = createDiv().id("Custom")
+
+    let textWidth = createP("Width: ").style("color: white;").position((windowWidth - width) / 2, height + 82).id("textWidth")
+    customWidth = createInput().position((windowWidth - width) / 2 + 52, height + 100).size(64, 12).id("customWidth")
+    let textHeight = createP("Height: ").style("color: white;").position((windowWidth - width) / 2, height + 106).id("textHeight")
+    customHeight = createInput().position((windowWidth - width) / 2 + 52, height + 124).size(64, 12).id("customHeight");
+    let textMines = createP("Mines: ").style("color: white;").position((windowWidth - width) / 2, height + 130).id("textMines")
+    customMines = createInput().position((windowWidth - width) / 2 + 52, height + 148).size(64, 12).id("customMines")
+
+    customSubmit = createButton("Create Game").style("background-color: white;").position((windowWidth - width) / 2, height + 172).id("customSubmit").mousePressed(customGame);
+
+    let elements = ["textWidth", "customWidth", "textHeight", "customHeight", "textMines", "customMines", "customSubmit"];
+    for (let i = 0; i < elements.length; i++) {
+        customDiv.child(elements[i]);
+    }
+    if (difficultySelector.value() == "Custom") {
+        console.log("unhide");
+        hideCustom("Custom", "block");
+    } else {
+        hideCustom("Custom", "none");
+    }
 }
 
 function convertToThree(num) {
@@ -161,4 +230,141 @@ function convertToThree(num) {
     }
 
     return newNum;
+}
+
+function selectDifficulty() {
+    if (difficultySelector.value() == "Custom") {
+        hideCustom("Custom", "block");
+    } else {
+        customDiv.style("display: none;");
+
+        switch (difficultySelector.value()) {
+            case "Expert":
+                gameDetail = Expert;
+                break;
+            case "Intermediate":
+                gameDetail = Intermediate;
+                break;
+            case "Beginner":
+                gameDetail = Beginner;
+                break;
+        }
+
+        document.getElementsByTagName("body")[0].innerHTML = "";
+        initiateGame();
+        Canvas();
+    }
+}
+
+function hideCustom(element, display) {
+    element = document.getElementById(element);
+    for (let i = 0; i < element.childNodes.length; i++) {
+        element.childNodes[i].style.display = display;
+    }
+}
+
+document.onmousedown = function(evt) {
+    let previous = [mouseState[0], mouseState[1], mouseState[2]];
+    mouseState[evt.button] = true;
+
+    if (mouseState[mouseRight] && !mouseState[mouseLeft]) {
+        if (gameState == "PLAYING") {
+            let coord = mouseToBoard(mouseX, mouseY);
+            if (!board[coord.x][coord.y].revealed) {
+                if ((!board[coord.x][coord.y].marked && totalFlagged < gameDetail.mines) || board[coord.x][coord.y].marked) {
+                    board[coord.x][coord.y].marked = !board[coord.x][coord.y].marked;
+                    totalFlagged += (board[coord.x][coord.y].marked) ? 1 : -1;
+                }
+            }
+        }
+    } else if (mouseState[mouseLeft] && !mouseState[mouseRight]) {
+        if (mouseX > (width - 52) / 2 && mouseX < (width + 52) / 2 && mouseY > 26 && mouseY < 78) {
+            faceState = "PRESSED";
+        }
+    }
+}
+
+document.onmouseup = function(evt) {
+    let previous = [mouseState[0], mouseState[1], mouseState[2]];
+    mouseState[evt.button] = false;
+
+    if (previous[mouseLeft] && !previous[mouseRight]) {
+        if (onBoard(mouseX, mouseY)) {
+            if (gameState == "BEFORE") {
+                let coord = mouseToBoard(mouseX, mouseY);
+                generateGame(coord.x, coord.y);
+                timer = setInterval(() => {
+                    time++;
+                }, 1000);
+                gameState = "PLAYING";
+            } else if (gameState == "PLAYING") {
+                let coord = mouseToBoard(mouseX, mouseY);
+                click(coord.x, coord.y);
+            }
+        }
+
+        if (faceState == "PRESSED") {
+            initiateGame();
+        }
+    } else if (previous[mouseRight] && !previous[mouseLeft]) {
+
+    } else if (previous[mouseRight] && previous[mouseLeft]) {
+        if (onBoard(mouseX, mouseY) && gameState == "PLAYING") {
+            let coord = mouseToBoard(mouseX, mouseY);
+            chord(coord.x, coord.y);
+        }
+    }
+}
+
+function onBoard(x, y) {
+    //this function checks if the mouse is on the board
+    return (x > dbx && x < width - dbx && y > dby && y < height - dbx)
+}
+
+function customGame() {
+    let newHeight = customHeight.value();
+    let newWidth = customWidth.value();
+    let newMines = customMines.value();
+
+    if (!isNaN(newHeight) && !isNaN(newWidth) && !isNaN(newMines)) {
+        newHeight = floor(parseFloat(newHeight));
+        newWidth = floor(parseFloat(newWidth));
+        newMines = floor(parseFloat(newMines));
+
+        gameDetail = new Setup(newHeight, newWidth, newMines, "Custom");
+        document.getElementsByTagName("body")[0].innerHTML = "";
+        initiateGame();
+        Canvas();
+    }
+}
+
+function findNeighbours(x, y) {
+    let neighbours = []
+    if (torus) {
+
+    } else {
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                if (!(i == j && i == 0)) {
+                    if (x + i < gameDetail.width && x + i >= 0 && y + j < gameDetail.height && y + j >= 0) {
+                        neighbours.push([x + i, y + j]);
+                    }
+                }
+            }
+        }
+    }
+
+    return neighbours;
+}
+
+function mouseToBoard(x, y) {
+    let coord = {
+        x: 0,
+        y: 0
+    }
+
+    coord.x = Math.floor((mouseX - dbx) / 32);
+    coord.y = Math.floor((mouseY - dby) / 32);
+
+    return coord;
 }

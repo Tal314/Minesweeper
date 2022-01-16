@@ -1,5 +1,6 @@
 html,
 body {
+    background-color: black;
     margin: 0;
     padding: 0;
 }
@@ -8,6 +9,6 @@ canvas {
     display: block;
 }
 
-.open0 {
-    background-image: "minesweeper data/numbers/open0";
+select {
+    overflow-wrap: break-word;
 }
