@@ -125,6 +125,7 @@ function win() {
     faceState = "WIN";
     gameState = "AFTER";
     clearInterval(timer);
+    totalFlagged = gameDetail.mines;
 
     for (let i = 0; i < gameDetail.width; i++) {
         for (let j = 0; j < gameDetail.height; j++) {
