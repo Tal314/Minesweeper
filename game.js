@@ -84,6 +84,7 @@ function revealeNeighbours(x, y) {
     let neighbours = findNeighbours(x, y);
     board[x][y].revealed = true;
     revealed++;
+    console.log(revealed);
     if (board[x][y].value == 0) {
         for (let k = 0; k < neighbours.length; k++) {
             let tempX = neighbours[k][0];
@@ -94,6 +95,7 @@ function revealeNeighbours(x, y) {
                 } else {
                     board[tempX][tempY].revealed = true;
                     revealed++;
+                    console.log(revealed);
                 }
             }
         }
@@ -103,9 +105,16 @@ function revealeNeighbours(x, y) {
 function click(x, y) {
     if (!board[x][y].mine && !board[x][y].marked) {
         revealeNeighbours(x, y);
-        if (gameDetail.width * gameDetail.height - gameDetail.mines == revealed) {
-            win();
+        let uncovered = 0;
+        for (let i = 0; i < gameDetail.width; i++) {
+            for (let j = 0; j < gameDetail.height; j++) {
+                if (board[i][j].revealed) {
+                    uncovered++;
+                }
+            }
         }
+
+        if (uncovered == (gameDetail.width * gameDetail.height - gameDetail.mines)) win();
     } else if (board[x][y].mine && !board[x][y].marked) {
         board[x][y].tapped = true;
         lose();
