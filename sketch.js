@@ -346,6 +346,7 @@ function findNeighbours(x, y) {
                 for (let dy = -1; dy <= 1; dy++) {
                     if (!(dx == dy && dx == 0)) {
                         if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
+                            //In the regular surface we simply ignore everything that goes beyond the border
                             neighbours.push([x + dx, y + dy]);
                         }
                     }
@@ -356,6 +357,7 @@ function findNeighbours(x, y) {
             for (let dx = -1; dx <= 1; dx++) {
                 for (let dy = -1; dy <= 1; dy++) {
                     if (!(dx == dy && dx == 0)) {
+                        //In the torus we need to loop over, it can be done using the remainder like so
                         let newX = (x + dx + gameDetail.width) % gameDetail.width;
                         let newY = (y + dy + gameDetail.height) % gameDetail.height;
                         neighbours.push([newX, newY]);
@@ -368,10 +370,14 @@ function findNeighbours(x, y) {
                 for (let dy = -1; dy <= 1; dy++) {
                     if (!(dx == dy && dx == 0)) {
                         if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy < gameDetail.height && y + dy >= 0)) {
+                            //if we go over one side (left and right in this case)
+                            //the x coordinate will loop over:
                             let newX = (x + dx + gameDetail.width) % gameDetail.width;
+                            //and the y coordinate will be flipped over along the middle x axis
                             let newY = gameDetail.height - y - dy - 1;
                             neighbours.push([newX, newY]);
                         } else if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
+                            //just like in the regular case
                             neighbours.push([x + dx, y + dy]);
                         }
                     }
