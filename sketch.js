@@ -183,6 +183,7 @@ function Canvas() {
     surfaceSelector.option("Torus");
     surfaceSelector.option("Mobius Strip");
     surfaceSelector.option("Klein Bottle");
+    surfaceSelector.option("Real Projective Plane");
     surfaceSelector.selected(surface);
     surfaceSelector.changed(changSurface);
 
@@ -376,6 +377,29 @@ function findNeighbours(x, y) {
             }
             break;
         case "Klein Bottle":
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (!(i == j && i == 0)) {
+                        if ((x + i >= gameDetail.width || x + i < 0) && (y + j < gameDetail.height && y + j >= 0)) {
+                            let newX = (x + i + gameDetail.width) % gameDetail.width;
+                            let newY = (y + j + gameDetail.height) % gameDetail.height;
+                            neighbours.push([newX, newY]);
+                        } else if ((y + j >= gameDetail.height || y + j < 0) && (x + i < gameDetail.width && x + i >= 0)) {
+                            let newX = gameDetail.width - x - i - 1;
+                            let newY = (y + j + gameDetail.height) % gameDetail.height;
+                            neighbours.push([newX, newY]);
+                        } else if (x + i < gameDetail.width && x + i >= 0 && y + j < gameDetail.height && y + j >= 0) {
+                            neighbours.push([x + i, y + j]);
+                        } else if ((x + i >= gameDetail.width || x + i < 0) && (y + j >= gameDetail.height || y + j < 0)) {
+                            let newX = (2 * gameDetail.width - x - i - 1) % gameDetail.width;
+                            let newY = (y + j + gameDetail.height) % gameDetail.height;
+                            neighbours.push([newX, newY]);
+                        }
+                    }
+                }
+            }
+            break;
+        case "Real Projective Plane":
             for (let i = -1; i <= 1; i++) {
                 for (let j = -1; j <= 1; j++) {
                     if (!(i == j && i == 0)) {
