@@ -347,7 +347,9 @@ function findNeighbours(x, y) {
                     if (!(dx == dy && dx == 0)) {
                         if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
                             //In the regular surface we simply ignore everything that goes beyond the border
-                            neighbours.push([x + dx, y + dy]);
+                            if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
+                                neighbours.push([x + dx, y + dy]);
+                            }
                         }
                     }
                 }
@@ -360,7 +362,9 @@ function findNeighbours(x, y) {
                         //In the torus we need to loop over, it can be done using the remainder like so
                         let newX = (x + dx + gameDetail.width) % gameDetail.width;
                         let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                        neighbours.push([newX, newY]);
+                        if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                            neighbours.push([newX, newY]);
+                        }
                     }
                 }
             }
@@ -375,10 +379,14 @@ function findNeighbours(x, y) {
                             let newX = (x + dx + gameDetail.width) % gameDetail.width;
                             //and the y coordinate will be flipped over along the middle x axis
                             let newY = gameDetail.height - y - dy - 1;
-                            neighbours.push([newX, newY]);
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push([newX, newY]);
+                            }
                         } else if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
                             //just like in the regular case
-                            neighbours.push([x + dx, y + dy]);
+                            if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
+                                neighbours.push([x + dx, y + dy]);
+                            }
                         }
                     }
                 }
@@ -391,17 +399,23 @@ function findNeighbours(x, y) {
                         if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy < gameDetail.height && y + dy >= 0)) {
                             let newX = (x + dx + gameDetail.width) % gameDetail.width;
                             let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            neighbours.push([newX, newY]);
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push([newX, newY]);
+                            }
                         } else if ((y + dy >= gameDetail.height || y + dy < 0) && (x + dx < gameDetail.width && x + dx >= 0)) {
                             let newX = gameDetail.width - x - dx - 1;
                             let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            neighbours.push([newX, newY]);
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push([newX, newY]);
+                            }
                         } else if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
                             neighbours.push([x + dx, y + dy]);
                         } else if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy >= gameDetail.height || y + dy < 0)) {
                             let newX = (2 * gameDetail.width - x - dx - 1) % gameDetail.width;
                             let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            neighbours.push([newX, newY]);
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push([newX, newY]);
+                            }
                         }
                     }
                 }
@@ -414,13 +428,19 @@ function findNeighbours(x, y) {
                         if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy < gameDetail.height && y + dy >= 0)) {
                             let newX = (x + dx + gameDetail.width) % gameDetail.width;
                             let newY = gameDetail.height - y - dy - 1;
-                            neighbours.push([newX, newY]);
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push([newX, newY]);
+                            }
                         } else if ((y + dy >= gameDetail.height || y + dy < 0) && (x + dx < gameDetail.width && x + dx >= 0)) {
                             let newX = gameDetail.width - x - dx - 1;
                             let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            neighbours.push([newX, newY]);
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push([newX, newY]);
+                            }
                         } else if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
-                            neighbours.push([x + dx, y + dy]);
+                            if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
+                                neighbours.push([x + dx, y + dy]);
+                            }
                         }
                     }
                 }
