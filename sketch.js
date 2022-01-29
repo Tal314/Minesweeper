@@ -217,6 +217,8 @@ function Canvas() {
     } else {
         hideCustom("Custom", "none");
     }
+
+    createButton("Let A Really Dumb AI Play").style("font-size: 24px; background-color: white;").size(152, 102).position((windowWidth + width) / 2 - 152, height + 104).mousePressed(initiateAI);
 }
 
 function convertToThree(num) {
@@ -466,4 +468,13 @@ function mouseToBoard(x, y) {
 function changSurface() {
     surface = surfaceSelector.value();
     initiateGame();
+}
+
+function initiateAI() {
+    if (gameState == "BEFORE") {
+        console.clear();
+        AITimer = setInterval(() => {
+            AI();
+        }, 50);
+    }
 }

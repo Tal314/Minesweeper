@@ -14,6 +14,7 @@ const Beginner = new Setup(9, 9, 10, "Beginner");
 let gameDetail = Expert;
 let torus = false;
 let gameState, faceState, time, totalFlagged, board, timer, revealed;
+let AITimer;
 
 class Cell {
     constructor() {
@@ -77,10 +78,10 @@ function generateGame(x, y) {
         }
     }
 
-    revealeNeighbours(x, y);
+    revealNeighbours(x, y);
 }
 
-function revealeNeighbours(x, y) {
+function revealNeighbours(x, y) {
     let neighbours = findNeighbours(x, y);
     board[x][y].revealed = true;
     revealed++;
@@ -90,7 +91,7 @@ function revealeNeighbours(x, y) {
             let tempY = neighbours[k][1];
             if (!board[tempX][tempY].mine && !board[tempX][tempY].marked && !board[tempX][tempY].revealed) {
                 if (board[tempX][tempY].value == 0) {
-                    revealeNeighbours(tempX, tempY);
+                    revealNeighbours(tempX, tempY);
                 } else {
                     board[tempX][tempY].revealed = true;
                     revealed++;
@@ -102,7 +103,7 @@ function revealeNeighbours(x, y) {
 
 function click(x, y) {
     if (!board[x][y].mine && !board[x][y].marked) {
-        revealeNeighbours(x, y);
+        revealNeighbours(x, y);
         let uncovered = 0;
         for (let i = 0; i < gameDetail.width; i++) {
             for (let j = 0; j < gameDetail.height; j++) {
@@ -123,6 +124,7 @@ function win() {
     faceState = "WIN";
     gameState = "AFTER";
     clearInterval(timer);
+    clearInterval(AITimer);
     totalFlagged = gameDetail.mines;
 
     for (let i = 0; i < gameDetail.width; i++) {
@@ -138,6 +140,7 @@ function lose() {
     faceState = "DEAD";
     gameState = "AFTER";
     clearInterval(timer);
+    clearInterval(AITimer);
 
     for (let i = 0; i < gameDetail.width; i++) {
         for (let j = 0; j < gameDetail.height; j++) {
