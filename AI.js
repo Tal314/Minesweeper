@@ -8,26 +8,25 @@ function AI() {
                 if (board[i][j].revealed && board[i][j].value > 0) {
                     let neighbours = findNeighbours(i, j);
                     let flaggedNeighbours = 0;
-                    let revealedNeighbours = 0;
+                    let unRevealedNeighbours = 0;
                     for (let k = 0; k < neighbours.length; k++) {
                         let coord = neighbours[k];
-                        if (board[coord[0]][coord[1]].marked) {
+                        if (board[coord.x][coord.y].marked) {
                             flaggedNeighbours++;
                         }
 
-                        if (!board[coord[0]][coord[1]].revealed) {
-                            revealedNeighbours++;
+                        if (!board[coord.x][coord.y].revealed) {
+                            unRevealedNeighbours++;
                         }
                     }
-                    if (flaggedNeighbours != revealedNeighbours) {
-
-                        if (revealedNeighbours == board[i][j].value) {
+                    if (flaggedNeighbours != unRevealedNeighbours) {
+                        if (unRevealedNeighbours == board[i][j].value) {
                             for (let k = 0; k < neighbours.length; k++) {
                                 let coord = neighbours[k];
-                                if (!board[coord[0]][coord[1]].revealed) {
-                                    if (!board[coord[0]][coord[1]].marked) {
+                                if (!board[coord.x][coord.y].revealed) {
+                                    if (!board[coord.x][coord.y].marked) {
                                         totalFlagged++;
-                                        board[coord[0]][coord[1]].marked = true;
+                                        board[coord.x][coord.y].marked = true;
                                         moves++;
                                     }
                                 }
@@ -52,14 +51,21 @@ function AI() {
                 let randomY = Math.floor(Math.random() * gameDetail.height);
 
                 if (!board[randomX][randomY].marked && !board[randomX][randomY].revealed) {
-                    //let neighbours = findNeighbours(randomX, randomY);
-                    //let revealedNeighbour = neighbours.find(neigh => board[neigh[0]][neigh[1]].revealed);
-                    //if (revealedNeighbour != undefined) {
-                    click(randomX, randomY);
-                    console.log("guessed!");
-                    clickedCell = true;
-                    moves++;
-                    //}
+                    let neighbours = findNeighbours(randomX, randomY);
+                    let revealedNeighbour = neighbours.find(neigh => board[neigh.x][neigh.y].revealed);
+                    if (totalFlagged != gameDetail.mines) {
+                        if (revealedNeighbour != undefined) {
+                            click(randomX, randomY);
+                            console.log("guessed!");
+                            clickedCell = true;
+                            moves++;
+                        }
+                    } else {
+                        click(randomX, randomY);
+                        console.log("guessed!");
+                        clickedCell = true;
+                        moves++;
+                    }
                 }
             }
         }

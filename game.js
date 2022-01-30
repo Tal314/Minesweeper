@@ -67,8 +67,8 @@ function generateGame(x, y) {
             if (!board[i][j].mine) {
                 let neighbours = findNeighbours(i, j);
                 for (let k = 0; k < neighbours.length; k++) {
-                    let tmepX = neighbours[k][0];
-                    let tempY = neighbours[k][1];
+                    let tmepX = neighbours[k].x;
+                    let tempY = neighbours[k].y;
 
                     if (board[tmepX][tempY].mine) {
                         board[i][j].value++;
@@ -87,8 +87,8 @@ function revealNeighbours(x, y) {
     revealed++;
     if (board[x][y].value == 0) {
         for (let k = 0; k < neighbours.length; k++) {
-            let tempX = neighbours[k][0];
-            let tempY = neighbours[k][1];
+            let tempX = neighbours[k].x;
+            let tempY = neighbours[k].y;
             if (!board[tempX][tempY].mine && !board[tempX][tempY].marked && !board[tempX][tempY].revealed) {
                 if (board[tempX][tempY].value == 0) {
                     revealNeighbours(tempX, tempY);
@@ -159,14 +159,14 @@ function chord(x, y) {
         let neighbours = findNeighbours(x, y);
         let neighMarked = 0;
         for (let i = 0; i < neighbours.length; i++) {
-            if (board[neighbours[i][0]][neighbours[i][1]].marked) {
+            if (board[neighbours[i].x][neighbours[i].y].marked) {
                 neighMarked++
             }
         }
 
         if (board[x][y].value == neighMarked) {
             for (let i = 0; i < neighbours.length; i++) {
-                click(neighbours[i][0], neighbours[i][1]);
+                click(neighbours[i].x, neighbours[i].y);
             }
         }
     }
