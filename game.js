@@ -56,7 +56,7 @@ function generateGame(x, y) {
         let randomX = Math.floor(Math.random() * gameDetail.width);
         let randomY = Math.floor(Math.random() * gameDetail.height);
 
-        if (Math.abs(randomX - x) > 1 && Math.abs(randomY - y) > 1 && !board[randomX][randomY].mine) {
+        if ((Math.abs(randomX - x) > 1 || Math.abs(randomY - y) > 1) && !board[randomX][randomY].mine) {
             board[randomX][randomY].mine = true;
             tempMines--;
         }
