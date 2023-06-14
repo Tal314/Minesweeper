@@ -24,6 +24,9 @@ class Cell {
         this.marked = false;
         this.tapped = false;
         this.wrong = false;
+
+        this.revealedNeighbours = 0;
+        this.flaggedNeighbours = 0;
     }
 }
 

@@ -4,8 +4,11 @@ let mouseState = [false, false, false];
 let mouseLeft = 0;
 let mouseRight = 2;
 let surface = "Regular Surface"; //"Regular Surface", "Torus", "Mobius Strip", "Klein Bottle"
+let radius = 1;
+let metric = "Chebyshev";
 
-let canvas, surfaceSelector, difficultySelector;
+let canvas, surfaceSelector, difficultySelector, metricSelector;
+let radiusSlider;
 let customDiv;
 let customSubmit, customWidth, customHeight, customMines;
 let dbx = 20;
@@ -95,7 +98,13 @@ function draw() {
                         image(pictures.board.bombs.regular, i * 32 + dbx, j * 32 + dby);
                     }
                 } else {
-                    image(pictures.board.numbers[cell.value], i * 32 + dbx, j * 32 + dby);
+                    if (cell.value <= 8) {
+                        image(pictures.board.numbers[cell.value], i * 32 + dbx, j * 32 + dby);
+                    } else {
+                        textSize(26);
+                        textAlign(CENTER);
+                        text(cell.value, i * 32 + dbx + 16, j * 32 + dby + 28)
+                    }
                     if (cell.wrong) {
                         image(pictures.board.bombs.wrong, i * 32 + dbx, j * 32 + dby);
                     }
@@ -183,9 +192,6 @@ function Canvas() {
     surfaceSelector = createSelect().size(152, 72).style("font-size: 24px; background-color: white;").position((windowWidth + width) / 2 - 152, height + 16);
     surfaceSelector.option("Regular Surface");
     surfaceSelector.option("Torus");
-    surfaceSelector.option("Mobius Strip");
-    surfaceSelector.option("Klein Bottle");
-    surfaceSelector.option("Real Projective Plane");
     surfaceSelector.selected(surface);
     surfaceSelector.changed(changSurface);
 
@@ -196,6 +202,19 @@ function Canvas() {
     difficultySelector.option("Custom");
     difficultySelector.selected(gameDetail.name);
     difficultySelector.changed(selectDifficulty);
+
+    metricSelector = createSelect().size(162, 72).style("font-size: 24px; background-color: white;").position((windowWidth + width) / 2 - 152, height + 104)
+    metricSelector.option("Chebyshev");
+    metricSelector.option("Taxicab");
+    metricSelector.selected(metric);
+    metricSelector.changed(changeMetric);
+
+    createP("Radius: ").style("color: white;").position((windowWidth + width) / 2 - 152, height + 165)
+    radiusSlider = createSlider(1, 4, 1, 1);
+    radiusSlider.position((windowWidth + width) / 2 - 100, height + 180);
+    radiusSlider.style("width", "100");
+    radiusSlider.changed(ChangeRadius);
+
 
     customDiv = createDiv().id("Custom")
 
@@ -218,7 +237,7 @@ function Canvas() {
         hideCustom("Custom", "none");
     }
 
-    createButton("Let A Really Dumb AI Play").style("font-size: 24px; background-color: white;").size(152, 102).position((windowWidth + width) / 2 - 152, height + 104).mousePressed(initiateAI);
+    //createButton("Let A Really Dumb AI Play").style("font-size: 24px; background-color: white;").size(152, 102).position((windowWidth + width) / 2 - 152, height + 104).mousePressed(initiateAI);
 }
 
 function convertToThree(num) {
@@ -342,31 +361,31 @@ function customGame() {
 
 function findNeighbours(x, y) {
     let neighbours = [];
-    switch (surface) {
-        case "Regular Surface":
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    if (!(dx == dy && dx == 0)) {
-                        if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
-                            //In the regular surface we simply ignore everything that goes beyond the border
-                            if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
+    for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+            if (!(dx == 0 && dy == 0)) {
+                let metricFunction;
+                if (metric == "Chebyshev") {
+                    metricFunction = chebyshev
+                } else if (metric == "Taxicab") {
+                    metricFunction = taxicab
+                }
+
+                let newX = (x + dx + gameDetail.width) % gameDetail.width;
+                let newY = (y + dy + gameDetail.height) % gameDetail.height;
+                if (surface == "Regular Surface") {
+                    if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
+                        if (metricFunction(dx, dy) <= radius) {
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
                                 neighbours.push({
-                                    x: x + dx,
-                                    y: y + dy
+                                    x: newX,
+                                    y: newY
                                 });
                             }
                         }
                     }
-                }
-            }
-            break;
-        case "Torus":
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    if (!(dx == dy && dx == 0)) {
-                        //In the torus we need to loop over, it can be done using the remainder like so
-                        let newX = (x + dx + gameDetail.width) % gameDetail.width;
-                        let newY = (y + dy + gameDetail.height) % gameDetail.height;
+                } else if (surface == "Torus") {
+                    if (metricFunction(dx, dy) <= radius) {
                         if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
                             neighbours.push({
                                 x: newX,
@@ -376,114 +395,76 @@ function findNeighbours(x, y) {
                     }
                 }
             }
-            break;
-        case "Mobius Strip":
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    if (!(dx == dy && dx == 0)) {
-                        if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy < gameDetail.height && y + dy >= 0)) {
-                            //if we go over one side (left and right in this case)
-                            //the x coordinate will loop over:
-                            let newX = (x + dx + gameDetail.width) % gameDetail.width;
-                            //and the y coordinate will be flipped over along the middle x axis
-                            let newY = gameDetail.height - y - dy - 1;
-                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
-                                neighbours.push({
-                                    x: newX,
-                                    y: newY
-                                });
-                            }
-                        } else if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
-                            //just like in the regular case
-                            if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
-                                neighbours.push({
-                                    x: x + dx,
-                                    y: y + dy
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        case "Klein Bottle":
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    if (!(dx == dy && dx == 0)) {
-                        if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy < gameDetail.height && y + dy >= 0)) {
-                            let newX = (x + dx + gameDetail.width) % gameDetail.width;
-                            let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
-                                neighbours.push({
-                                    x: newX,
-                                    y: newY
-                                });
-                            }
-                        } else if ((y + dy >= gameDetail.height || y + dy < 0) && (x + dx < gameDetail.width && x + dx >= 0)) {
-                            let newX = gameDetail.width - x - dx - 1;
-                            let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
-                                neighbours.push({
-                                    x: newX,
-                                    y: newY
-                                });
-                            }
-                        } else if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
-                            neighbours.push({
-                                x: x + dx,
-                                y: y + dy
-                            });
-                        } else if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy >= gameDetail.height || y + dy < 0)) {
-                            let newX = (2 * gameDetail.width - x - dx - 1) % gameDetail.width;
-                            let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
-                                neighbours.push({
-                                    x: newX,
-                                    y: newY
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        case "Real Projective Plane":
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    if (!(dx == dy && dx == 0)) {
-                        if ((x + dx >= gameDetail.width || x + dx < 0) && (y + dy < gameDetail.height && y + dy >= 0)) {
-                            let newX = (x + dx + gameDetail.width) % gameDetail.width;
-                            let newY = gameDetail.height - y - dy - 1;
-                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
-                                neighbours.push({
-                                    x: newX,
-                                    y: newY
-                                });
-                            }
-                        } else if ((y + dy >= gameDetail.height || y + dy < 0) && (x + dx < gameDetail.width && x + dx >= 0)) {
-                            let newX = gameDetail.width - x - dx - 1;
-                            let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
-                                neighbours.push({
-                                    x: newX,
-                                    y: newY
-                                });
-                            }
-                        } else if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
-                            if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
-                                neighbours.push({
-                                    x: x + dx,
-                                    y: y + dy
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            break;
+        }
     }
 
+    // switch (surface) {
+    //     case "Regular Surface":
+    //         // for (let dx = -1; dx <= 1; dx++) {
+    //         //     for (let dy = -1; dy <= 1; dy++) {
+    //         //         if (!(dx == dy && dx == 0)) {
+    //         //             if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
+    //         //                 //In the regular surface we simply ignore everything that goes beyond the border
+    //         //                 if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
+    //         //                     neighbours.push({
+    //         //                         x: x + dx,
+    //         //                         y: y + dy
+    //         //                     });
+    //         //                 }
+    //         //             }
+    //         //         }
+    //         //     }
+    //         // }
+    //         break;
+    //     case "Torus":
+    //         for (let dx = -1; dx <= 1; dx++) {
+    //             for (let dy = -1; dy <= 1; dy++) {
+    //                 if (!(dx == dy && dx == 0)) {
+    //                     //In the torus we need to loop over, it can be done using the remainder like so
+    //                     let newX = (x + dx + gameDetail.width) % gameDetail.width;
+    //                     let newY = (y + dy + gameDetail.height) % gameDetail.height;
+    //                     if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+    //                         neighbours.push({
+    //                             x: newX,
+    //                             y: newY
+    //                         });
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         break;
+    //     case "Taxicab":
+    //         for (let dx = -2; dx <= 2; dx++) {
+    //             for (let dy = -2; dy <= 2; dy++) {
+    //                 if (!(dx == dy && dx == 0)) {
+    //                     if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
+    //                         if (Math.abs(dx) + Math.abs(dy) <= 2) {
+    //                             if (neighbours.find(el => el[0] == x + dx && el[1] == y + dy) == undefined) {
+    //                                 neighbours.push({
+    //                                     x: x + dx,
+    //                                     y: y + dy
+    //                                 });
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         break;
+
+    //     case ("TaxiTorus"):
+
+    // }
+
     return neighbours;
+}
+
+function chebyshev(dx, dy) {
+    return (Math.max(Math.abs(dx), Math.abs(dy)))
+}
+
+function taxicab(dx, dy) {
+    return (Math.abs(dx) + Math.abs(dy));
 }
 
 function mouseToBoard(x, y) {
@@ -503,6 +484,11 @@ function changSurface() {
     initiateGame();
 }
 
+function changeMetric() {
+    metric = metricSelector.value();
+    initiateGame();
+}
+
 function initiateAI() {
     if (gameState == "BEFORE") {
         console.clear();
@@ -510,4 +496,9 @@ function initiateAI() {
             AI();
         }, 50);
     }
+}
+
+function ChangeRadius() {
+    radius = radiusSlider.value();
+    initiateGame();
 }
