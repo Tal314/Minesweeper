@@ -192,6 +192,9 @@ function Canvas() {
     surfaceSelector = createSelect().size(152, 72).style("font-size: 24px; background-color: white;").position((windowWidth + width) / 2 - 152, height + 16);
     surfaceSelector.option("Regular Surface");
     surfaceSelector.option("Torus");
+    surfaceSelector.option("Mobius Strip");
+    surfaceSelector.option("Klein Bottle");
+    surfaceSelector.option("Real Projective Plane");
     surfaceSelector.selected(surface);
     surfaceSelector.changed(changSurface);
 
@@ -373,9 +376,9 @@ function findNeighbours(x, y) {
 
                 let newX = (x + dx + gameDetail.width) % gameDetail.width;
                 let newY = (y + dy + gameDetail.height) % gameDetail.height;
-                if (surface == "Regular Surface") {
-                    if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
-                        if (metricFunction(dx, dy) <= radius) {
+                if (metricFunction(dx, dy) <= radius) {
+                    if (surface == "Regular Surface") {
+                        if (x + dx < gameDetail.width && x + dx >= 0 && y + dy < gameDetail.height && y + dy >= 0) {
                             if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
                                 neighbours.push({
                                     x: newX,
@@ -383,14 +386,81 @@ function findNeighbours(x, y) {
                                 });
                             }
                         }
-                    }
-                } else if (surface == "Torus") {
-                    if (metricFunction(dx, dy) <= radius) {
-                        if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
-                            neighbours.push({
-                                x: newX,
-                                y: newY
-                            });
+                    } else if (surface == "Torus") {
+                        if (metricFunction(dx, dy) <= radius)
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push({
+                                    x: newX,
+                                    y: newY
+                                });
+                            }
+                    } else if (surface == "Mobius Strip") {
+                        if (y + dy < gameDetail.height && y + dy >= 0) {
+                            if (x + dx < gameDetail.width && x + dx >= 0) {
+                                if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                    neighbours.push({
+                                        x: newX,
+                                        y: newY
+                                    });
+                                }
+                            } else {
+                                if (neighbours.find(el => el[0] == newX && el[1] == gameDetail.height - newY - 1) == undefined) {
+                                    neighbours.push({
+                                        x: newX,
+                                        y: gameDetail.height - newY - 1
+                                    });
+                                }
+                            }
+                        }
+                    } else if (surface == "Klein Bottle") {
+                        if (x + dx < gameDetail.width && x + dx >= 0) {
+                            if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                neighbours.push({
+                                    x: newX,
+                                    y: newY
+                                });
+                            }
+                        } else {
+                            if (neighbours.find(el => el[0] == newX && el[1] == gameDetail.height - newY - 1) == undefined) {
+                                neighbours.push({
+                                    x: newX,
+                                    y: gameDetail.height - newY - 1
+                                });
+                            }
+                        }
+                    } else if (surface == "Real Projective Plane") {
+                        if (y + dy < gameDetail.height && y + dy >= 0) {
+                            if (x + dx < gameDetail.width && x + dx >= 0) {
+                                if (neighbours.find(el => el[0] == newX && el[1] == newY) == undefined) {
+                                    neighbours.push({
+                                        x: newX,
+                                        y: newY
+                                    });
+                                }
+                            } else {
+                                if (neighbours.find(el => el[0] == newX && el[1] == gameDetail.height - newY - 1) == undefined) {
+                                    neighbours.push({
+                                        x: newX,
+                                        y: gameDetail.height - newY - 1
+                                    });
+                                }
+                            }
+                        } else {
+                            if (x + dx < gameDetail.width && x + dx >= 0) {
+                                if (neighbours.find(el => el[0] == gameDetail.width - newX - 1 && el[1] == newY) == undefined) {
+                                    neighbours.push({
+                                        x: gameDetail.width - newX - 1,
+                                        y: newY
+                                    });
+                                }
+                            } else {
+                                if (neighbours.find(el => el[0] == gameDetail.width - newX - 1 && el[1] == gameDetail.height - newY - 1) == undefined) {
+                                    neighbours.push({
+                                        x: gameDetail.width - newX - 1,
+                                        y: gameDetail.height - newY - 1
+                                    });
+                                }
+                            }
                         }
                     }
                 }
